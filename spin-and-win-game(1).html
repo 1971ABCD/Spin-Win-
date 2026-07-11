@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ice Breaking Spin & Win Game</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,"Microsoft YaHei",sans-serif}
+body{margin:0;min-height:100vh;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:white}
+.container{max-width:1150px;margin:auto;padding:28px 16px 45px}
+h1{text-align:center;font-size:clamp(34px,7vw,68px);margin:0;text-shadow:0 5px 20px rgba(0,0,0,.35);letter-spacing:1px}
+.subtitle{text-align:center;color:rgba(255,255,255,.85);font-size:18px;margin:10px 0 24px}
+.layout{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:center}
+.card{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);box-shadow:0 20px 45px rgba(0,0,0,.28);border-radius:28px;padding:24px;backdrop-filter:blur(8px)}
+.wheelBox{position:relative;width:min(88vw,560px);aspect-ratio:1;margin:auto;display:grid;place-items:center}
+.pointer{position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;border-top:58px solid white;z-index:5;filter:drop-shadow(0 5px 5px rgba(0,0,0,.35))}
+.wheel{position:relative;width:100%;height:100%;border-radius:50%;border:12px solid white;background:conic-gradient(#fde047 0 60deg,#fb7185 60deg 120deg,#38bdf8 120deg 180deg,#34d399 180deg 240deg,#a78bfa 240deg 300deg,#fb923c 300deg 360deg);box-shadow:0 22px 50px rgba(0,0,0,.38),inset 0 0 0 8px rgba(255,255,255,.35);transition:transform 5.2s cubic-bezier(.12,.75,.16,1);overflow:hidden}
+.wheel:after{content:"";position:absolute;inset:41%;background:white;border-radius:50%;z-index:2;box-shadow:0 0 0 7px rgba(0,0,0,.1)}
+.spinBtn{position:absolute;width:112px;height:112px;border-radius:50%;border:8px solid white;background:linear-gradient(135deg,#f97316,#dc2626);color:white;font-size:22px;font-weight:900;z-index:4;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.35)}
+.spinBtn:disabled{opacity:.65;cursor:not-allowed}
+
+/* Fixed: centered prize text inside each slice */
+.label{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:138px;
+  min-height:48px;
+  margin-left:-69px;
+  margin-top:-24px;
+  color:#111827;
+  font-weight:900;
+  font-size:clamp(13px,2vw,20px);
+  z-index:3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  line-height:1.05;
+  text-shadow:0 1px 0 rgba(255,255,255,.7);
+  pointer-events:none;
+}
+.label span{display:block;width:100%;overflow-wrap:break-word}
+.l1{transform:rotate(30deg) translateY(-168px) rotate(-30deg)}
+.l2{transform:rotate(90deg) translateY(-168px) rotate(-90deg)}
+.l3{transform:rotate(150deg) translateY(-168px) rotate(-150deg)}
+.l4{transform:rotate(210deg) translateY(-168px) rotate(-210deg)}
+.l5{transform:rotate(270deg) translateY(-168px) rotate(-270deg)}
+.l6{transform:rotate(330deg) translateY(-168px) rotate(-330deg)}
+
+.panel{background:rgba(255,255,255,.96);color:#111827}
+.panel h2{font-size:27px;margin:0 0 12px}
+.panel p{color:#6b7280;line-height:1.55}
+.prizes{display:grid;gap:10px;margin:18px 0}
+.prize{display:flex;gap:11px;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:12px 14px;font-weight:800}
+.badge{width:32px;height:32px;border-radius:50%;background:#eef2ff;color:#1d4ed8;display:grid;place-items:center;flex:0 0 auto}
+.resultBox{background:linear-gradient(135deg,#fffbeb,#fff7ed);border:2px dashed #f97316;border-radius:18px;padding:18px;text-align:center;margin:16px 0}
+.resultBox small{color:#6b7280;font-weight:700}
+.result{font-size:clamp(26px,4vw,40px);font-weight:1000;color:#dc2626;margin-top:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+button{border:0;border-radius:12px;padding:13px 17px;font-weight:900;font-size:15px;cursor:pointer}
+.orange{background:#f97316;color:white}.orange:hover{background:#ea580c}
+.light{background:#e5e7eb;color:#111827}
+.green{background:#dcfce7;color:#166534}
+.history{margin-top:16px}
+.history h3{font-size:17px;margin:0 0 8px}
+.historyList{max-height:150px;overflow:auto;background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:10px;color:#374151;font-size:14px}
+.historyList div{padding:6px 4px;border-bottom:1px solid #e5e7eb}
+.historyList div:last-child{border-bottom:0}
+details{border-top:1px solid #e5e7eb;margin-top:16px;padding-top:14px}
+summary{cursor:pointer;color:#1d4ed8;font-weight:900}
+.editGrid{display:grid;gap:8px;margin-top:12px}
+.editGrid input{width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:10px;font-size:14px}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.modal{background:white;color:#111827;width:min(520px,100%);border-radius:28px;text-align:center;padding:34px 24px;box-shadow:0 25px 70px rgba(0,0,0,.45);animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.86);opacity:0}to{transform:scale(1);opacity:1}}
+.emoji{font-size:72px}.modal h2{font-size:34px;margin:6px 0}.modalPrize{font-size:42px;color:#dc2626;font-weight:1000;margin:8px 0 18px}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:11}
+.confetti i{position:absolute;top:-20px;width:9px;height:16px;animation:fall 2.7s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.75}}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.card{padding:18px}}
+@media(max-width:520px){
+  .wheel{border-width:8px}
+  .spinBtn{width:88px;height:88px;font-size:18px}
+  .pointer{border-left-width:18px;border-right-width:18px;border-top-width:44px}
+  .label{width:112px;margin-left:-56px;font-size:12px}
+  .l1{transform:rotate(30deg) translateY(-32vw) rotate(-30deg)}
+  .l2{transform:rotate(90deg) translateY(-32vw) rotate(-90deg)}
+  .l3{transform:rotate(150deg) translateY(-32vw) rotate(-150deg)}
+  .l4{transform:rotate(210deg) translateY(-32vw) rotate(-210deg)}
+  .l5{transform:rotate(270deg) translateY(-32vw) rotate(-270deg)}
+  .l6{transform:rotate(330deg) translateY(-32vw) rotate(-330deg)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Spin & Win</h1>
+  <div class="subtitle">Ice Breaking Game · 破冰幸运转盘</div>
+
+  <div class="layout">
+    <section class="card">
+      <div class="wheelBox">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+          <div class="label l1"><span id="wl0">Phone</span></div>
+          <div class="label l2"><span id="wl1">Car</span></div>
+          <div class="label l3"><span id="wl2">House</span></div>
+          <div class="label l4"><span id="wl3">RM80 Cash</span></div>
+          <div class="label l5"><span id="wl4">Toy</span></div>
+          <div class="label l6"><span id="wl5">Try Again Later</span></div>
+        </div>
+        <button class="spinBtn" id="spinBtn">SPIN</button>
+      </div>
+    </section>
+
+    <section class="card panel">
+      <h2>Prize List 奖品列表</h2>
+      <p>This game has 5 prizes and 1 “Try Again Later” section. Suitable for roadshow, booth activity, staff ice breaking or customer engagement.</p>
+
+      <div class="prizes" id="prizeList"></div>
+
+      <div class="resultBox">
+        <small>Latest Result 最新结果</small>
+        <div class="result" id="latest">Ready?</div>
+      </div>
+
+      <div class="actions">
+        <button class="orange" id="startBtn">Start Spin</button>
+        <button class="green" id="tipBtn">Screenshot Tip</button>
+        <button class="light" id="clearBtn">Clear History</button>
+      </div>
+
+      <div class="history">
+        <h3>Result History 中奖记录</h3>
+        <div class="historyList" id="historyList">No result yet.</div>
+      </div>
+
+      <details>
+        <summary>Edit Prize Names 修改奖品名称</summary>
+        <div class="editGrid" id="editGrid"></div>
+        <div class="actions">
+          <button class="orange" id="saveBtn">Save Names</button>
+          <button class="light" id="defaultBtn">Default</button>
+        </div>
+      </details>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="emoji" id="emoji">🎉</div>
+    <h2 id="modalTitle">Congratulations!</h2>
+    <div class="modalPrize" id="modalPrize">Phone</div>
+    <button class="orange" id="okBtn">OK</button>
+  </div>
+</div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+const DEFAULT_PRIZES=["Phone","Car","House","RM80 Cash","Toy","Try Again Later"];
+const PRIZE_KEY="iceBreakingSpinWinPrizesV1";
+const HISTORY_KEY="iceBreakingSpinWinHistoryV1";
+const wheel=document.getElementById("wheel");
+const spinBtn=document.getElementById("spinBtn");
+const startBtn=document.getElementById("startBtn");
+const latest=document.getElementById("latest");
+const prizeList=document.getElementById("prizeList");
+const historyList=document.getElementById("historyList");
+const editGrid=document.getElementById("editGrid");
+const overlay=document.getElementById("overlay");
+const emoji=document.getElementById("emoji");
+const modalTitle=document.getElementById("modalTitle");
+const modalPrize=document.getElementById("modalPrize");
+const confetti=document.getElementById("confetti");
+let spinning=false;
+let currentRotation=0;
+
+function prizes(){return JSON.parse(localStorage.getItem(PRIZE_KEY)||JSON.stringify(DEFAULT_PRIZES))}
+function savePrizes(p){localStorage.setItem(PRIZE_KEY,JSON.stringify(p))}
+function history(){return JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]")}
+function saveHistory(h){localStorage.setItem(HISTORY_KEY,JSON.stringify(h))}
+function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function attr(t){return String(t).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function render(){
+  const p=prizes();
+  p.forEach((x,i)=>document.getElementById("wl"+i).textContent=x);
+  prizeList.innerHTML=p.map((x,i)=>'<div class="prize"><span class="badge">'+(i===5?"↻":i+1)+'</span>'+esc(x)+'</div>').join("");
+  editGrid.innerHTML=p.map((x,i)=>'<input id="pi'+i+'" value="'+attr(x)+'" placeholder="'+(i===5?"Try Again Later":"Prize "+(i+1))+'">').join("");
+  renderHistory();
+}
+
+function renderHistory(){
+  const h=history();
+  if(!h.length){historyList.textContent="No result yet.";return}
+  historyList.innerHTML=h.slice().reverse().map((x,i)=>'<div><b>'+(h.length-i)+'.</b> '+esc(x.prize)+'<br><small>'+esc(x.time)+'</small></div>').join("");
+}
+
+function spin(){
+  if(spinning)return;
+  spinning=true; spinBtn.disabled=true; startBtn.disabled=true; latest.textContent="Spinning...";
+  const p=prizes();
+  const index=Math.floor(Math.random()*p.length);
+  const seg=360/p.length;
+  const center=index*seg+seg/2;
+  const target=270-center;
+  const normalized=currentRotation%360;
+  const angle=((target-normalized)+360)%360;
+  currentRotation+=6*360+angle;
+  wheel.style.transform="rotate("+currentRotation+"deg)";
+  setTimeout(()=>{
+    const result=p[index];
+    latest.textContent=result;
+    const h=history();
+    h.push({prize:result,time:new Date().toLocaleString("en-MY")});
+    saveHistory(h);
+    renderHistory();
+    showResult(result,index);
+    spinning=false; spinBtn.disabled=false; startBtn.disabled=false;
+  },5300);
+}
+
+function showResult(result,index){
+  const tryAgain=index===5 || result.toLowerCase().includes("try again");
+  if(tryAgain){emoji.textContent="😊"; modalTitle.textContent="Try Again Later"; modalPrize.textContent=result}
+  else{emoji.textContent="🎉"; modalTitle.textContent="Congratulations!"; modalPrize.textContent=result; makeConfetti()}
+  overlay.style.display="flex";
+}
+
+function makeConfetti(){
+  confetti.innerHTML="";
+  const colors=["#facc15","#fb7185","#38bdf8","#34d399","#a78bfa","#f97316"];
+  for(let i=0;i<90;i++){
+    const piece=document.createElement("i");
+    piece.style.left=Math.random()*100+"vw";
+    piece.style.background=colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDelay=Math.random()*.6+"s";
+    piece.style.transform="rotate("+Math.random()*360+"deg)";
+    confetti.appendChild(piece);
+  }
+  setTimeout(()=>confetti.innerHTML="",3500);
+}
+
+spinBtn.onclick=spin;
+startBtn.onclick=spin;
+document.getElementById("okBtn").onclick=()=>overlay.style.display="none";
+overlay.onclick=e=>{if(e.target===overlay)overlay.style.display="none"};
+document.getElementById("saveBtn").onclick=()=>{
+  const p=[];
+  for(let i=0;i<6;i++){p.push(document.getElementById("pi"+i).value.trim()||DEFAULT_PRIZES[i])}
+  savePrizes(p); render(); alert("Prize names updated!");
+};
+document.getElementById("defaultBtn").onclick=()=>{savePrizes(DEFAULT_PRIZES);render();alert("Back to default prizes.")};
+document.getElementById("clearBtn").onclick=()=>{if(confirm("Clear all result history?")){localStorage.removeItem(HISTORY_KEY);latest.textContent="Ready?";renderHistory()}};
+document.getElementById("tipBtn").onclick=()=>alert("Windows screenshot: Windows + Shift + S. Mac screenshot: Command + Shift + 4.");
+render();
+</script>
+</body>
+</html>
